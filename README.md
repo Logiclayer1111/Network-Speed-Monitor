@@ -8,6 +8,16 @@
 
 Network Speed Monitor is a lightweight Windows utility that measures your true physical network performance by automatically detecting and filtering out VPN and virtual adapters.
 
+## How to run this project.
+
+-Backend
+python -m pip install -r requirements.txt
+python backend/poller/main.py
+python backend/api/main.py  
+-frontend
+cd frontend
+npm start
+
 ## ✨ Features
 
 - 🛡️ **VPN-Aware Polling** - Automatically filters virtual/VPN adapters
