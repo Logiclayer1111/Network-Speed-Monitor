@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / "backend"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "backend"))
 
 from poller.adapter_detector import AdapterDetector
 from poller.speed_tester import SpeedTester, MockSpeedTester

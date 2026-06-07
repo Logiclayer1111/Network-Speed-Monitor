@@ -20,8 +20,8 @@ function App() {
     new Date().toISOString().split("T")[0],
   );
   const [dailyData, setDailyData] = useState<SpeedData[]>([]);
-  const [weekData, setWeekData] = useState({});
-  const [worstTimes, setWorstTimes] = useState([]);
+  const [weekData, setWeekData] = useState<Record<string, any[]>>({});
+  const [worstTimes, setWorstTimes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

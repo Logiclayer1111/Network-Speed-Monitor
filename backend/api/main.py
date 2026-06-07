@@ -59,7 +59,11 @@ async def lifespan(app: FastAPI):
     print("Starting Network Speed Monitor API...")
     
     # Start background aggregator
-    from .aggregator import start_aggregator
+    # Use absolute-import fallback that works whether this file is run as a module or script.
+    try:
+        from backend.api.aggregator import start_aggregator  # type: ignore
+    except Exception:
+        from api.aggregator import start_aggregator  # type: ignore
     start_aggregator()
     
     yield
@@ -173,7 +177,7 @@ async def get_health():
     return HealthResponse(
         status="healthy",
         samples_collected=stats['total_samples'],
-        last_update=stats['last_sample']['timestamp'] if stats['last_sample'] else "Never",
+        last_update=str(stats['last_sample']['timestamp']) if stats['last_sample'] else "Never",
         uptime_hours=round(uptime_hours, 1),
         db_size_mb=round(db_size, 2)
     )
@@ -224,21 +228,25 @@ async def get_adapters():
 # ============ Main Entry Point ============
 
 if __name__ == "__main__":
+    # Print registered routes to help diagnose subprocess startup issues
+    print("Registered routes:")
+    for route in app.routes:
+        if hasattr(route, 'path'):
+            print(route.path)
+
     import uvicorn
     
-    print(f"""
-    ╔════════════════════════════════════════╗
-    ║   Network Speed Monitor API Server     ║
-    ╠════════════════════════════════════════╣
-    ║  API Docs: http://localhost:8000/docs  ║
-    ║  Health:   http://localhost:8000/health║
-    ╚════════════════════════════════════════╝
-    """)
-    
+    # Avoid extended Unicode characters which can crash console encoding in subprocess tests.
+    print("Network Speed Monitor API Server")
+    print("API Docs: http://localhost:8000/docs")
+    print("Health:   http://localhost:8000/health")
+
+    print("Starting uvicorn...")
     uvicorn.run(
-        "main:app",
-        host="127.0.0.1",
+        app,
+        host="localhost",
         port=8000,
         reload=False,
+        workers=1,
         log_level="info"
     )

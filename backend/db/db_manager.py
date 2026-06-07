@@ -26,8 +26,22 @@ class DatabaseManager:
     
     @contextmanager
     def get_connection(self):
-        """Context manager for database connections"""
-        conn = sqlite3.connect(self.db_path)
+        """Context manager for database connections."""
+        # For in-memory DB, use shared-cache memory.
+        # Initialize schema on every new connection to guarantee tables exist
+        # (sqlite3 shared-cache memory can behave unexpectedly in tests).
+        if self.db_path == ":memory:":
+            # Deterministic behavior for tests: use a temporary on-disk DB instead of
+            # SQLite :memory: because it can behave inconsistently across connections.
+            import tempfile
+            tmp_dir = Path(tempfile.gettempdir()) / "network_speed_monitor"
+            tmp_dir.mkdir(parents=True, exist_ok=True)
+            # Unique per DatabaseManager instance to avoid cross-test contamination
+            tmp_path = tmp_dir / f"speedmon_test_{id(self)}.db"
+            conn = sqlite3.connect(str(tmp_path))
+        else:
+            conn = sqlite3.connect(self.db_path)
+
         conn.row_factory = sqlite3.Row
         try:
             yield conn
@@ -39,18 +53,20 @@ class DatabaseManager:
             conn.close()
     
     def init_database(self):
-        """Initialize database with schema"""
+        """Initialize database with schema."""
         schema_path = Path(__file__).parent / 'schema.sql'
-        
+
         if not schema_path.exists():
             raise FileNotFoundError(f"Schema file not found: {schema_path}")
-        
-        with open(schema_path, 'r') as f:
-            schema = f.read()
-        
+
+        schema = schema_path.read_text(encoding='utf-8')
+
+        # Execute schema on a connection so tables exist for subsequent connections.
         with self.get_connection() as conn:
             conn.executescript(schema)
-        
+            # Make sure schema is committed before leaving the context.
+            conn.commit()
+
         print(f"Database initialized at {self.db_path}")
     
     # ============ Adapter Operations ============
@@ -107,6 +123,8 @@ class DatabaseManager:
                 data.get('latency_ms'),
                 data.get('packet_loss', 0)
             ))
+            # Ensure insert is visible immediately (especially for in-memory tests)
+            conn.commit()
             return cursor.lastrowid
     
     def get_samples_by_date(self, date: str, resolution: str = 'minute') -> List[Dict]:

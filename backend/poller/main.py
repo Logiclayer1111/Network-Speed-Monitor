@@ -22,11 +22,14 @@ from db.db_manager import DatabaseManager
 
 # Configure logging
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# Ensure log directory exists (tests import this module directly)
+log_dir = Path(__file__).parent.parent / 'logs'
+log_dir.mkdir(exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format=LOG_FORMAT,
     handlers=[
-        logging.FileHandler(Path(__file__).parent.parent / 'logs' / 'poller.log'),
+        logging.FileHandler(log_dir / 'poller.log'),
         logging.StreamHandler()
     ]
 )
