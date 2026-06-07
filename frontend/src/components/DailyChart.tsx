@@ -69,6 +69,7 @@ export const DailyChart: React.FC<DailyChartProps> = ({ data }) => {
         />
         <YAxis
           yAxisId="speed"
+          domain={[0, 100]}
           label={{
             value: "Mbps",
             angle: -90,
