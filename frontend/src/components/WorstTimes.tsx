@@ -51,19 +51,23 @@ export const WorstTimes: React.FC<WorstTimesProps> = ({ data }) => {
             </tr>
           </thead>
           <tbody>
-            {data.map((period, index) => (
-              <tr key={index} className={getSeverityClass(period.avg_download)}>
-                <td>{formatDay(period.day)}</td>
-                <td>{period.time_range}</td>
-                <td className="speed-value">
-                  <strong>{period.avg_download} Mbps</strong>
-                </td>
-                <td className="speed-range">
-                  {period.min_download} - {period.max_download} Mbps
-                </td>
-                <td>{period.samples}</td>
-              </tr>
-            ))}
+            {Array.isArray(data) &&
+              data.map((period, index) => (
+                <tr
+                  key={index}
+                  className={getSeverityClass(period.avg_download)}
+                >
+                  <td>{formatDay(period.day)}</td>
+                  <td>{period.time_range}</td>
+                  <td className="speed-value">
+                    <strong>{period.avg_download} Mbps</strong>
+                  </td>
+                  <td className="speed-range">
+                    {period.min_download} - {period.max_download} Mbps
+                  </td>
+                  <td>{period.samples}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
